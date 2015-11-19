@@ -3,7 +3,7 @@
 import csv
 from pprint import pprint
 
-with open('points.csv') as infile, open('bandcolors.csv', 'w') as outfile:
+with open('tmo.csv') as infile, open('bandcolors.csv', 'w') as outfile:
 	reader = csv.DictReader(infile)
 	in_fields = set(reader.fieldnames)
 	out_fields = in_fields | {'marker-color'}

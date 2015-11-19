@@ -7,7 +7,7 @@ from pprint import pprint
 
 addr = []
 
-with open('points.csv') as infile:
+with open('tmo.csv') as infile:
 	reader = csv.DictReader(infile)
 	for row in reader:
 		if row['id']:
