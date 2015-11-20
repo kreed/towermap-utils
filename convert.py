@@ -22,11 +22,11 @@ for n in osm.iterfind('node'):
 	if 'band' in props:
 		bands = props['band'].split(';')
 		if '2' in bands:
-			color = color | 0xff0000
-		if '4' in bands:
 			color = color | 0x0000ff
-		if '12' in bands:
+		if '4' in bands:
 			color = color | 0x00ff00
+		if '12' in bands:
+			color = color | 0xff0000
 	props['marker-color'] = color and '#%06x' % color or ''
 
 	point = geojson.Point((float(lon), float(lat)))

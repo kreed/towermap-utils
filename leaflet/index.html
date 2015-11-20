@@ -34,7 +34,7 @@ map.setView([29.4200, -98.4910], 13);
 L.geoJson(towers, {
 	pointToLayer: function (feature, latlng) {
 		var color = feature.properties['marker-color'];
-		var opts = {color: color};
+		var opts = {color: color, opacity: 1, radius: 8};
 		return L.circleMarker(latlng, opts);
 	}
 }).addTo(map);
