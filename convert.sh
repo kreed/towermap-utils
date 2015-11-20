@@ -10,4 +10,5 @@ ogr2ogr -f geojson tmo.geojson minjur.geojson -select $fields
 ogr2ogr -f csv -lco GEOMETRY=AS_XY tmo.csv minjur.geojson -select $fields
 rm minjur.geojson
 
+sed -i -e '1s/X/lon/' -e '1s/Y/lat/' tmo.csv
 echo -n 'var towers = ' | cat - tmo.geojson > tmo.js
