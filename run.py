@@ -10,7 +10,7 @@ file = gzip.GzipFile(sys.argv[1], 'r')
 bbox = None
 band12only = False
 if len(sys.argv) == 3 and 'bbox' in sys.argv[2]:
-	bbox = [-99.1324,28.8471,-97.0058,30.012]
+	bbox = [-100.1678,28.835,-91.7084,30.5055]
 if len(sys.argv) == 3 and 'band12' in sys.argv[2]:
 	band12only = True
 
