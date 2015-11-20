@@ -14,7 +14,7 @@ if len(sys.argv) == 3 and 'bbox' in sys.argv[2]:
 if len(sys.argv) == 3 and 'band12' in sys.argv[2]:
 	band12only = True
 
-print('lon,lat,pci,gci,sector,range,samples,created,updated,band2,band4,band12')
+print('lon,lat,enb,gci,sector,range,samples,created,updated,band2,band4,band12')
 for line in file:
 	if line[0:12] == 'LTE,310,260,':
 		radio, mcc, net, area, cell, unit, lon, lat, range, samples, changeable, created, updated, averageSignal = line.split(',')
@@ -25,8 +25,8 @@ for line in file:
 			continue
 
 		sector = int(cell) & 0xff
-		pci = int(cell) >> 8
-		if pci > 200000:
+		enb = int(cell) >> 8
+		if enb > 200000:
 			continue
 
 		band4 = 'Y' if (sector >= 1 and sector <= 4) or (sector >= 101 and sector <= 104) else ''
@@ -38,4 +38,4 @@ for line in file:
 
 		created = time.strftime('%Y-%m-%d', time.gmtime(int(created)))
 		updated = time.strftime('%Y-%m-%d', time.gmtime(int(updated)))
-		print(lon,lat,pci,cell,sector,range,samples,created,updated,band2,band4,band12,sep=',')
+		print(lon,lat,enb,cell,sector,range,samples,created,updated,band2,band4,band12,sep=',')

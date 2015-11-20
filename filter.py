@@ -9,20 +9,20 @@ cell_bands = {}
 with open('tmo.csv') as infile:
 	reader = csv.DictReader(infile)
 	for row in reader:
-		if row['id']:
-			cell_bands[row['id']] = row['band'].split(';')
+		if row['enb']:
+			cell_bands[row['enb']] = row['band'].split(';')
 
 with open(sys.argv[1]) as infile:
 	reader = csv.DictReader(infile)
 	writer = csv.DictWriter(sys.stdout, reader.fieldnames)
 	writer.writeheader()
 	for row in reader:
-		pci = row['pci']
-		if pci in cell_bands:
-			if row['band2'] == 'Y' and '2' in cell_bands[pci]:
+		enb = row['enb']
+		if enb in cell_bands:
+			if row['band2'] == 'Y' and '2' in cell_bands[enb]:
 				continue
-			if row['band4'] == 'Y' and '4' in cell_bands[pci]:
+			if row['band4'] == 'Y' and '4' in cell_bands[enb]:
 				continue
-			if row['band12'] == 'Y' and '12' in cell_bands[pci]:
+			if row['band12'] == 'Y' and '12' in cell_bands[enb]:
 				continue
 		writer.writerow(row)
