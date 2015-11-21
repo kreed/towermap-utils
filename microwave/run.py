@@ -45,7 +45,14 @@ for uls_no, v in license_locs.items():
 		print(uls_no, len(transmitters), 'transmitters', len(receivers), 'receivers')
 		continue
 
-	props = {'microwave_uls': uls_no, 'url': 'http://wireless2.fcc.gov/UlsApp/UlsSearch/license.jsp?licKey=%d' % uls_no, 'grant_date': grant_date, 'cancellation_date': cancel_date}
+	props = {
+		'microwave_uls': uls_no,
+		'url': 'http://wireless2.fcc.gov/UlsApp/UlsSearch/license.jsp?licKey=%d' % uls_no,
+		'grant_date': grant_date,
+	}
+	if cancel_date:
+		props['cancellation_date'] = cancel_date
+
 	for r in receivers:
 		geom = geojson.LineString((transmitters[0], r))
 		result.append(geojson.Feature(properties=props, geometry=geom))
