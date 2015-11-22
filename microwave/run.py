@@ -70,7 +70,7 @@ for uls_no, v in license_locs.items():
 	if uls_no in mapped_sites:
 		match = True
 		for coord in (transmitters + receivers):
-			match = match_coord(coord, mapped_sites[uls_no], 1000)
+			match = match_coord(coord, mapped_sites[uls_no], 1500)
 			if not match:
 				break
 		props['matched'] = match
