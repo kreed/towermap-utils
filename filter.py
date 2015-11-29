@@ -9,8 +9,9 @@ cell_bands = {}
 with open('tmo.csv') as infile:
 	reader = csv.DictReader(infile)
 	for row in reader:
-		if row['enb']:
-			cell_bands[row['enb']] = row['band'].split(';')
+		for enb in row['enb'].split(';'):
+			if enb:
+				cell_bands[enb] = row['band'].split(';')
 
 with open(sys.argv[1]) as infile:
 	reader = csv.DictReader(infile)
