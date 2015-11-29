@@ -26,8 +26,8 @@
 <script>
 var map = L.map('map');
 var opts = { minZoom: 5, maxNativeZoom: 13 };
-L.tileLayer('http://kreed.org/tmobile/tiles/1448175886/{z}/{x}/{y}.png', opts).addTo(map);
-var overlay = L.tileLayer('http://kreed.org/tmobile/tiles/1448313340-nob12/{z}/{x}/{y}.png', opts).addTo(map);
+var right = L.tileLayer('http://kreed.org/tmobile/tiles/1448175886/{z}/{x}/{y}.png', opts).addTo(map);
+var left = L.tileLayer('http://kreed.org/tmobile/tiles/1448313340-nob12/{z}/{x}/{y}.png', opts).addTo(map);
 L.tileLayer('http://{s}.tiles.mapbox.com/v4/pdgoodman.2e9b9266/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoia3JlM2QiLCJhIjoiMEpxSWVyQSJ9.6ZjZOcJ0fivmTomvkBKbaw').addTo(map);
 map.setView([29.4200, -98.4910], 13);
 
@@ -46,7 +46,8 @@ function clip() {
 			se = map.containerPointToLayerPoint(map.getSize()),
 			clipX = nw.x + (se.x - nw.x) * range.value;
 
-	overlay.getContainer().style.clip = 'rect(' + [nw.y, clipX, se.y, nw.x].join('px,') + 'px)';
+	left.getContainer().style.clip = 'rect(' + [nw.y, clipX, se.y, nw.x].join('px,') + 'px)';
+	right.getContainer().style.clip = 'rect(' + [nw.y, se.x, se.y, clipX].join('px,') + 'px)';
 }
 
 range['oninput' in range ? 'oninput' : 'onchange'] = clip;
