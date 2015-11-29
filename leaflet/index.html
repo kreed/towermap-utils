@@ -25,9 +25,9 @@
 <input id='range' type='range' min='0' max='1.0' step='any' />
 <script>
 var map = L.map('map');
-var opts = { zoomOffset: 1, xOffset: 1, yOffset: 1, minZoom: 7 };
-L.tileLayer('http://maps.t-mobile.com/TMo_TechLTE_Map/{z}/{x}:{y}/tile.png', opts).addTo(map);
-var overlay = L.tileLayer('http://maps.t-mobile.com/Extra2_Map/{z}/{x}:{y}/tile.png', opts).addTo(map);
+var opts = { minZoom: 5, maxNativeZoom: 13 };
+L.tileLayer('http://kreed.org/tmobile/tiles/1448175886/{z}/{x}/{y}.png', opts).addTo(map);
+var overlay = L.tileLayer('http://kreed.org/tmobile/tiles/1448313340-nob12/{z}/{x}/{y}.png', opts).addTo(map);
 L.tileLayer('http://{s}.tiles.mapbox.com/v4/pdgoodman.2e9b9266/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoia3JlM2QiLCJhIjoiMEpxSWVyQSJ9.6ZjZOcJ0fivmTomvkBKbaw').addTo(map);
 map.setView([29.4200, -98.4910], 13);
 
