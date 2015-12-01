@@ -9,6 +9,7 @@ from PIL import Image
 
 base_path = sys.argv[1]
 out_path = sys.argv[2]
+fallback_path = sys.argv[3] if len(sys.argv) > 3 else None
 tile_path = '/{zoom}/{x}/{y}.png'
 tile_size = 256
 
@@ -39,11 +40,17 @@ def stitch_image(x, y, zoom):
 		for dy in range(2):
 			try:
 				im = Image.open(out_path + tile_path.format(x=x*2+dx,y=y*2+dy,zoom=zoom+1))
-				im.thumbnail((tile_size//2,tile_size//2))
-				new_im.paste(im,(dx*tile_size//2,dy*tile_size//2))
 			except IOError:
 				images -= 1
-				pass
+				if not fallback_path:
+					continue
+				try:
+					im = Image.open(fallback_path + tile_path.format(x=x*2+dx,y=y*2+dy,zoom=zoom+1))
+				except IOError:
+					continue
+
+			im.thumbnail((tile_size//2,tile_size//2))
+			new_im.paste(im,(dx*tile_size//2,dy*tile_size//2))
 
 	if images:
 		return new_im
