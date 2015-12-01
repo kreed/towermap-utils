@@ -170,46 +170,31 @@ def tile_in_us(x, y, zoom):
 	bbox = Polygon([(l,t),(r,t),(r,b),(l,b),(l,t)])
 	return us.intersects(bbox)
 
-def fetch_tiles(queue, top_left, bottom_right, name, max_zoom, min_zoom):
-	zoom = max_zoom
+def fetch_tiles(queue, top_left, bottom_right, name, zoom, max_zoom):
+	print(name, zoom)
 
-	while zoom >= min_zoom:
-		print(name, zoom)
-
-		factor = 2 ** (max_zoom - zoom)
-		x = top_left[0] // factor
-		max_x = bottom_right[0] // factor
-
-		while x <= max_x:
-			y = top_left[1] // factor
-			max_y = bottom_right[1] // factor
-
-			while y <= max_y:
-				if cmd != 'fetch' or tile_in_us(x, y, zoom):
-					queue.put((x, y, zoom))
-
-				y = y + 1
-
-			x = x + 1
-
-		zoom = zoom - 1
+	factor = 2 ** (max_zoom - zoom)
+	for x in range(top_left[0] // factor, bottom_right[0] // factor + 1):
+		for y in range(top_left[1] // factor, bottom_right[1] // factor + 1):
+			if cmd != 'fetch' or tile_in_us(x, y, zoom):
+				queue.put((x, y, zoom))
 
 if __name__=='__main__':
 	queue = Queue()
+	for zoom in range(max_zoom, min_zoom - 1, -1):
+		workers = []
+		for i in range(worker_count):
+			p = Process(target=worker_loop, args=((queue),))
+			p.daemon = True
+			p.start()
+			workers.append(p)
 
-	workers = []
-	for i in range(worker_count):
-		p = Process(target=worker_loop, args=((queue),))
-		p.daemon = True
-		p.start()
-		workers.append(p)
+		fetch_tiles(queue, (2563, 3660), (2635, 3693), 'Puerto Rico/Virgin Islands', zoom, max_zoom)
+		fetch_tiles(queue, (447, 3574), (575, 3658), 'Hawaii', zoom, max_zoom)
+		fetch_tiles(queue, (1255, 2797), (2575, 3521), 'Contiguous US', zoom, max_zoom)
 
-	fetch_tiles(queue, (2563, 3660), (2635, 3693), 'Puerto Rico/Virgin Islands', max_zoom, min_zoom)
-	fetch_tiles(queue, (447, 3574), (575, 3658), 'Hawaii', max_zoom, min_zoom)
-	fetch_tiles(queue, (1255, 2797), (2575, 3521), 'Contiguous US', max_zoom, min_zoom)
+		for i in range(worker_count):
+			queue.put('DONE')
 
-	for i in range(worker_count):
-		queue.put('DONE')
-
-	for p in workers:
-		p.join()
+		for p in workers:
+			p.join()
