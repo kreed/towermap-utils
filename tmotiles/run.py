@@ -67,15 +67,15 @@ def remove_roaming(x, y, zoom):
 	if not os.path.isfile(imagefile) or os.path.getsize(imagefile) == 0:
 		return None
 
-	orig_color = (212,212,212,255)
-	replacement_color = (0,0,0,0)
-
 	im = Image.open(imagefile)
 	data = np.array(im)
-	data[(data == orig_color).all(axis = -1)] = replacement_color
 
+	# remove roaming
+	data[(data == (212,212,212,255)).all(axis = -1)] = (0,0,0,0) # normal roaming
+	data[(data == (188,190,192,255)).all(axis = -1)] = (0,0,0,0) # stripes for non-prepaid roaming
+
+	# if removing roaming resulted in a completely transparent image, return nothing
 	if not data.T[3].any():
-		# all transparent
 		return None
 
 	return Image.fromarray(data)
