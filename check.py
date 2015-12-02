@@ -58,8 +58,9 @@ for enb,v in cells.items():
 		}
 		site_props.update(base_props)
 
-	tacs = {}
 	bands = set()
+	sectors = set()
+	tacs = {}
 
 	for mls_cell in mls_cells:
 		sector_props = dict(mls_cell, **base_props)
@@ -73,6 +74,8 @@ for enb,v in cells.items():
 				if mls_cell['band' + k] == 'Y':
 					bands.add(int(k))
 
+			sectors.add(int(mls_cell['sector']))
+
 			tac = mls_cell['tac']
 			if not tac in tacs:
 				tacs[tac] = 0
@@ -82,7 +85,9 @@ for enb,v in cells.items():
 		ways.append((site_props, sector_props, way_props))
 
 	if not mapped_cell:
-		site_props['band'] = ';'.join(str(b) for b in bands)
+		site_props['band'] = ';'.join(str(b) for b in sorted(bands))
+		site_props['sectors'] = ';'.join(str(b) for b in sorted(sectors))
+
 		tacs = sorted(tacs.items(), key=itemgetter(1), reverse=True)
 		site_props['tac'] = tacs[0][0]
 		if len(tacs) > 1:
