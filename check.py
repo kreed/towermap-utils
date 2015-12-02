@@ -72,10 +72,7 @@ for enb,v in cells.items():
 			if mls_cell['tac'] != mapped_cell['tac']:
 				way_props['tac_flagged'] = tac_flag if tac_flag else '1'
 
-		for k in '2','4','12':
-			if mls_cell['band' + k] == 'Y':
-				bands.add(int(k))
-
+		bands.add(int(mls_cell['band']))
 		sectors.add(int(mls_cell['sector']))
 
 		tac = mls_cell['tac']

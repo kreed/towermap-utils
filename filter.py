@@ -19,11 +19,6 @@ with open(sys.argv[1]) as infile:
 	writer.writeheader()
 	for row in reader:
 		enb = row['enb']
-		if enb in cell_bands:
-			if row['band2'] == 'Y' and '2' in cell_bands[enb]:
-				continue
-			if row['band4'] == 'Y' and '4' in cell_bands[enb]:
-				continue
-			if row['band12'] == 'Y' and '12' in cell_bands[enb]:
-				continue
+		if enb in cell_bands and row['band'] in cell_bands[enb]:
+			continue
 		writer.writerow(row)
