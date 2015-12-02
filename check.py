@@ -1,22 +1,11 @@
 #!/usr/bin/env python3
 
 import csv
-import geojson
 import sys
-from pprint import pprint
 
-filename = 'check.geojson'
+filename = 'check.osm'
+
 cells = {}
-features = []
-
-def make_point(row, base_props):
-	props = { k: v for k,v in row.items() if k not in ('lat','lon') }
-	props.update(base_props)
-	geom = geojson.Point((float(row['lon']), float(row['lat'])))
-	f = geojson.Feature(properties=props, geometry=geom)
-	features.append(f)
-	return f
-
 with open('tmo.csv') as infile:
 	reader = csv.DictReader(infile)
 	for row in reader:
@@ -40,6 +29,8 @@ with open(sys.argv[1]) as infile:
 			cells[enb] = (None, [])
 		cells[enb][1].append(row)
 
+nodes = []
+ways = []
 for enb,v in cells.items():
 	mapped_cell, mls_cells = v
 
@@ -52,49 +43,73 @@ for enb,v in cells.items():
 			if mls_cell['tac'] != mapped_cell['tac']:
 				counter += 1
 		if counter == len(mls_cells):
-			tac_flag = 3
+			tac_flag = '3'
 		elif counter > len(mls_cells)/2:
-			tac_flag = 2
+			tac_flag = '2'
 
-	if mapped_cell:
-		mapped_point = make_point(mapped_cell, base_props)
-		base_props['to_map'] = False
+		base_props['to_map'] = '0'
+		site_props = dict(mapped_cell, **base_props)
 	else:
-		base_props['to_map'] = True
-		gen_cell = {
-			'lon': sum([ float(row['lon']) for row in mls_cells ])/len(mls_cells),
-			'lat': sum([ float(row['lat']) for row in mls_cells ])/len(mls_cells),
+		base_props['to_map'] = '1'
+		site_props = {
+			'lon': str(sum([ float(row['lon']) for row in mls_cells ])/len(mls_cells)),
+			'lat': str(sum([ float(row['lat']) for row in mls_cells ])/len(mls_cells)),
 		}
-		mapped_point = make_point(gen_cell, base_props)
+		site_props.update(base_props)
 
 	tacs = set()
 	bands = set()
 
 	for mls_cell in mls_cells:
-		mls_point = make_point(mls_cell, base_props)
-
-		geom = geojson.LineString((mls_point.geometry.coordinates, mapped_point.geometry.coordinates))
-		props = {}
-		props.update(base_props)
-		f = geojson.Feature(properties=props, geometry=geom)
+		sector_props = dict(mls_cell, **base_props)
+		way_props = dict(base_props)
 
 		if mapped_cell:
 			if mls_cell['tac'] != mapped_cell['tac']:
-				props['tac_flagged'] = tac_flag if tac_flag else 1
+				way_props['tac_flagged'] = tac_flag if tac_flag else '1'
 		else:
 			for k in '2','4','12':
 				if mls_cell['band' + k] == 'Y':
 					bands.add(int(k))
 			tacs.add(mls_cell['tac'])
 
-		if not mapped_cell:
-			mapped_point.properties['tac'] = ';'.join(tacs)
-			mapped_point.properties['band'] = ';'.join(str(b) for b in bands)
+		nodes.append(sector_props)
+		ways.append((site_props, sector_props, way_props))
 
-		features.append(f)
+	if not mapped_cell:
+		site_props['tac'] = ';'.join(tacs)
+		site_props['band'] = ';'.join(str(b) for b in bands)
 
-result = geojson.FeatureCollection(features)
-with open(filename, 'w') as out:
-	geojson.dump(result, out)
+	nodes.append(site_props)
 
+with open(filename, 'w') as f:
+	f.write('<osm generator="check.py" upload="false" version="0.6">')
 
+	node_id = -1
+	for props in nodes:
+		props['_id'] = node_id
+		node_id -= 1
+
+		f.write('<node id="%d" lat="%s" lon="%s">' % (props['_id'], props['lat'], props['lon']))
+		for k,v in props.items():
+			if v and k != 'lat' and k != 'lon' and k != '_id':
+				f.write('<tag k="%s" v="%s"/>' % (k, v))
+		f.write('</node>')
+
+	way_id = -1
+	for e in ways:
+		site, sector, props = e
+
+		f.write('<way id="%d">' % way_id)
+		way_id -= 1
+
+		f.write('<nd ref="%d"/>' % site['_id'])
+		f.write('<nd ref="%d"/>' % sector['_id'])
+
+		for k,v in props.items():
+			if v:
+				f.write('<tag k="%s" v="%s"/>' % (k, v))
+
+		f.write('</way>')
+
+	f.write('</osm>')
