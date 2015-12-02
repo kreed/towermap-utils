@@ -2,6 +2,7 @@
 
 import csv
 import sys
+from operator import itemgetter
 
 filename = 'check.osm'
 
@@ -47,17 +48,17 @@ for enb,v in cells.items():
 		elif counter > len(mls_cells)/2:
 			tac_flag = '2'
 
-		base_props['to_map'] = '0'
+		base_props['_to_map'] = '0'
 		site_props = dict(mapped_cell, **base_props)
 	else:
-		base_props['to_map'] = '1'
+		base_props['_to_map'] = '1'
 		site_props = {
 			'lon': str(sum([ float(row['lon']) for row in mls_cells ])/len(mls_cells)),
 			'lat': str(sum([ float(row['lat']) for row in mls_cells ])/len(mls_cells)),
 		}
 		site_props.update(base_props)
 
-	tacs = set()
+	tacs = {}
 	bands = set()
 
 	for mls_cell in mls_cells:
@@ -71,14 +72,21 @@ for enb,v in cells.items():
 			for k in '2','4','12':
 				if mls_cell['band' + k] == 'Y':
 					bands.add(int(k))
-			tacs.add(mls_cell['tac'])
+
+			tac = mls_cell['tac']
+			if not tac in tacs:
+				tacs[tac] = 0
+			tacs[tac] += 1
 
 		nodes.append(sector_props)
 		ways.append((site_props, sector_props, way_props))
 
 	if not mapped_cell:
-		site_props['tac'] = ';'.join(tacs)
 		site_props['band'] = ';'.join(str(b) for b in bands)
+		tacs = sorted(tacs.items(), key=itemgetter(1), reverse=True)
+		site_props['tac'] = tacs[0][0]
+		if len(tacs) > 1:
+			site_props['_all_tacs'] = str(tacs)
 
 	nodes.append(site_props)
 
