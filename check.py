@@ -61,6 +61,8 @@ for enb,v in cells.items():
 	bands = set()
 	sectors = set()
 	tacs = {}
+	first_seen = None
+	last_seen = None
 
 	for mls_cell in mls_cells:
 		sector_props = dict(mls_cell, **base_props)
@@ -81,12 +83,19 @@ for enb,v in cells.items():
 				tacs[tac] = 0
 			tacs[tac] += 1
 
+			if first_seen == None or mls_cell['created'] < first_seen:
+				first_seen = mls_cell['created']
+			if last_seen == None or mls_cell['updated'] > last_seen:
+				last_seen = mls_cell['updated']
+
 		nodes.append(sector_props)
 		ways.append((site_props, sector_props, way_props))
 
 	if not mapped_cell:
 		site_props['band'] = ';'.join(str(b) for b in sorted(bands))
-		site_props['sectors'] = ';'.join(str(b) for b in sorted(sectors))
+		site_props['_sectors'] = ';'.join(str(b) for b in sorted(sectors))
+		site_props['_first_seen'] = first_seen
+		site_props['_last_seen'] = last_seen
 
 		tacs = sorted(tacs.items(), key=itemgetter(1), reverse=True)
 		site_props['tac'] = tacs[0][0]
