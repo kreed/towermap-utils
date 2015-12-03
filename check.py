@@ -68,10 +68,6 @@ for enb,v in cells.items():
 		sector_props = dict(mls_cell, **base_props)
 		way_props = dict(base_props)
 
-		if mapped_cell:
-			if mls_cell['tac'] != mapped_cell['tac']:
-				way_props['tac_flagged'] = tac_flag if tac_flag else '1'
-
 		bands.add(int(mls_cell['band']))
 		sectors.add(int(mls_cell['sector']))
 
@@ -85,6 +81,16 @@ for enb,v in cells.items():
 		if last_seen == None or mls_cell['updated'] > last_seen:
 			last_seen = mls_cell['updated']
 
+		if mapped_cell:
+			if mls_cell['tac'] != mapped_cell['tac']:
+				flag = tac_flag if tac_flag else '1'
+				way_props['tac_flagged'] = flag
+				site_props['tac_flagged'] = flag
+
+			if not mls_cell['band'] in mapped_cell['band'].split(';'):
+				way_props['band_flag'] = '1'
+				site_props['band_flag'] = '1'
+
 		nodes.append(sector_props)
 		ways.append((site_props, sector_props, way_props))
 
@@ -96,9 +102,13 @@ for enb,v in cells.items():
 	if len(tacs) > 1:
 		site_props['_all_tacs'] = str(tacs)
 
-	if not mapped_cell:
+	bands = ';'.join(str(b) for b in sorted(bands))
+	if mapped_cell:
+		if bands != mapped_cell['band'] and not 'band_flag' in site_props:
+			site_props['band_flag'] = '2'
+	else:
 		site_props['tac'] = tacs[0][0]
-		site_props['band'] = ';'.join(str(b) for b in sorted(bands))
+		site_props['band'] = bands
 
 	nodes.append(site_props)
 
