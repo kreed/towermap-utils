@@ -9,6 +9,7 @@ mapped_filename = '/home/chris/Dropbox/osm/tmo.osm'
 mls_filename = 'sa.csv'
 filename = 'check.osm'
 
+sites = []
 cells = {}
 microwave_sites = {}
 
@@ -24,10 +25,12 @@ for n in osm.iterfind('node'):
 			props[t.get('k')] = v
 
 	row = dict({'lat': lat, 'lon': lon}, **props)
+	site = (row,[])
+	sites.append(site)
 
 	if 'enb' in row:
 		for enb in row['enb'].split(';'):
-			cells[enb] = (row,[])
+			cells[enb] = site[1]
 
 with open(mls_filename) as infile:
 	reader = csv.DictReader(infile)
@@ -42,28 +45,20 @@ with open(mls_filename) as infile:
 			continue
 
 		if not enb in cells:
-			cells[enb] = (None, [])
-		cells[enb][1].append(row)
+			site = (None, [])
+			sites.append(site)
+			cells[enb] = site[1]
+		cells[enb].append(row)
 
 nodes = []
 ways = []
-for enb,v in cells.items():
-	mapped_cell, mls_cells = v
+for mapped_cell, mls_cells in sites:
 
 	tac_flag = None
 
 	if mapped_cell:
 		site_props = dict(mapped_cell)
 		site_props['_to_map'] = '0'
-
-		counter = 0
-		for mls_cell in mls_cells:
-			if mls_cell['tac'] != mapped_cell['tac']:
-				counter += 1
-		if counter == len(mls_cells):
-			tac_flag = 'all bad tac'
-		elif counter > len(mls_cells)/2:
-			tac_flag = '&gt; half bad tac'
 
 		if mapped_cell.get('microwave_uls', None):
 			for uls in mapped_cell['microwave_uls'].split(';'):
@@ -72,67 +67,78 @@ for enb,v in cells.items():
 				microwave_sites[uls].append(site_props)
 	else:
 		site_props = {
-			'enb': enb,
+			'enb': mls_cells[0]['enb'],
 			'_to_map': '1',
 			'lon': str(sum([ float(row['lon']) for row in mls_cells ])/len(mls_cells)),
 			'lat': str(sum([ float(row['lat']) for row in mls_cells ])/len(mls_cells)),
 		}
 
-	bands = set()
-	sectors = set()
-	tacs = {}
-	first_seen = None
-	last_seen = None
-
-	for mls_cell in mls_cells:
-		sector_props = dict(mls_cell)
-		way_props = { 'enb': enb }
-
-		bands.add(int(mls_cell['band']))
-		sectors.add(int(mls_cell['sector']))
-
-		tac = mls_cell['tac']
-		if not tac in tacs:
-			tacs[tac] = 0
-		tacs[tac] += 1
-
-		if first_seen == None or mls_cell['created'] < first_seen:
-			first_seen = mls_cell['created']
-		if last_seen == None or mls_cell['updated'] > last_seen:
-			last_seen = mls_cell['updated']
-
+	if mls_cells:
 		if mapped_cell:
-			if mls_cell['tac'] != mapped_cell['tac']:
-				flag = tac_flag if tac_flag else '&lt; half bad tac'
-				way_props['_error_tac'] = site_props['error_tac'] = flag
-				site_props['_to_map'] = '2'
+			counter = 0
+			for mls_cell in mls_cells:
+				if mls_cell['tac'] != mapped_cell['tac']:
+					counter += 1
+			if counter == len(mls_cells):
+				tac_flag = 'all bad tac'
+			elif counter > len(mls_cells)/2:
+				tac_flag = '&gt; half bad tac'
 
-			if not mls_cell['band'] in mapped_cell['band'].split(';') and mls_cell['band'] != '-1':
-				way_props['_error_band'] = site_props['error_band'] = 'missing band'
-				site_props['_to_map'] = '2'
+		bands = set()
+		sectors = set()
+		tacs = {}
+		first_seen = None
+		last_seen = None
 
-		nodes.append(sector_props)
-		ways.append((site_props, sector_props, way_props))
+		for mls_cell in mls_cells:
+			sector_props = dict(mls_cell)
+			way_props = { 'enb': site_props['enb'] }
 
-	site_props['_sectors'] = ';'.join(str(b) for b in sorted(sectors))
-	site_props['_first_seen'] = first_seen
-	site_props['_last_seen'] = last_seen
+			bands.add(int(mls_cell['band']))
+			sectors.add(int(mls_cell['sector']))
 
-	tacs = sorted(tacs.items(), key=itemgetter(1), reverse=True)
-	if len(tacs) > 1:
-		site_props['_all_tacs'] = str(tacs)
+			tac = mls_cell['tac']
+			if not tac in tacs:
+				tacs[tac] = 0
+			tacs[tac] += 1
 
-	mls_bands = ';'.join(str(b) for b in sorted(bands))
-	if mapped_cell:
-		known_bands = ';'.join(str(b) for b in sorted(bands - {-1}))
-		if known_bands != mapped_cell['band']:
-			site_props['_mls_bands'] = mls_bands
-			if not 'error_band' in site_props and mls_cells:
-				site_props['_error_band'] = 'extraneous band'
-				site_props['_to_map'] = '2'
-	else:
-		site_props['tac'] = tacs[0][0]
-		site_props['band'] = mls_bands
+			if first_seen == None or mls_cell['created'] < first_seen:
+				first_seen = mls_cell['created']
+			if last_seen == None or mls_cell['updated'] > last_seen:
+				last_seen = mls_cell['updated']
+
+			if mapped_cell:
+				if mls_cell['tac'] != mapped_cell['tac']:
+					flag = tac_flag if tac_flag else '&lt; half bad tac'
+					way_props['_error_tac'] = site_props['error_tac'] = flag
+					site_props['_to_map'] = '2'
+
+				if not mls_cell['band'] in mapped_cell['band'].split(';') and mls_cell['band'] != '-1':
+					way_props['_error_band'] = site_props['error_band'] = 'missing band'
+					site_props['_to_map'] = '2'
+
+			nodes.append(sector_props)
+			ways.append((site_props, sector_props, way_props))
+
+		site_props['_sectors'] = ';'.join(str(b) for b in sorted(sectors))
+		site_props['_first_seen'] = first_seen
+		site_props['_last_seen'] = last_seen
+
+		tacs = sorted(tacs.items(), key=itemgetter(1), reverse=True)
+		if len(tacs) > 1:
+			site_props['_all_tacs'] = str(tacs)
+
+		mls_bands = ';'.join(str(b) for b in sorted(bands))
+		if mapped_cell:
+			known_bands = ';'.join(str(b) for b in sorted(bands - {-1}))
+			if known_bands != mapped_cell['band']:
+				site_props['_mls_bands'] = mls_bands
+				if not 'error_band' in site_props and mls_cells:
+					site_props['_error_band'] = 'extraneous band'
+					site_props['_to_map'] = '2'
+		else:
+			site_props['tac'] = tacs[0][0]
+			site_props['band'] = mls_bands
 
 	nodes.append(site_props)
 
