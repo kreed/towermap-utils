@@ -5,17 +5,18 @@ from geopy.distance import great_circle
 from lxml import etree
 from operator import itemgetter
 import csv
-import json
 
-bbox = [-101.2555,25.6811,-89.2694,31.8122]
 mapped_filename = '/home/chris/Dropbox/osm/tmo.osm'
 mls_filename = 'sa.csv'
 filename = 'check.osm'
+imports = [
+	('imports/tmotowers.csv', 'tmotowers', {}),
+	('imports/ausperms.csv', 'austin:addr', {}),
+]
 
 sites = []
 cells = {}
 microwave_sites = {}
-tmotowers = {}
 
 osm = etree.ElementTree(file=mapped_filename)
 for n in osm.iterfind('node'):
@@ -57,9 +58,6 @@ with open(mls_filename) as infile:
 nodes = []
 ways = []
 for mapped_cell, mls_cells in sites:
-
-	tac_flag = None
-
 	if mapped_cell:
 		site_props = dict(mapped_cell)
 		site_props['_to_map'] = '0'
@@ -70,8 +68,10 @@ for mapped_cell, mls_cells in sites:
 					microwave_sites[uls] = []
 				microwave_sites[uls].append(site_props)
 
-		if mapped_cell.get('tmotowers', None):
-			tmotowers[mapped_cell['tmotowers']] = site_props
+		for f, key, sites in imports:
+			if mapped_cell.get(key, None):
+				for e in mapped_cell[key].split(';'):
+					sites[e] = site_props
 	else:
 		site_props = {
 			'enb': mls_cells[0]['enb'],
@@ -81,6 +81,7 @@ for mapped_cell, mls_cells in sites:
 		}
 
 	if mls_cells:
+		tac_flag = None
 		if mapped_cell:
 			counter = 0
 			for mls_cell in mls_cells:
@@ -149,21 +150,18 @@ for mapped_cell, mls_cells in sites:
 
 	nodes.append(site_props)
 
-with open('tmotowers.json') as f:
-	for tower in json.load(f):
-		id = tower['photo_id']
-		flat = float(tower['latitude'])
-		flon = float(tower['longitude'])
-		if flon < bbox[0] or flon > bbox[2] or flat < bbox[1] or flat > bbox[3]:
-			continue
+for f, key, sites in imports:
+	with open(f) as infile:
+		reader = csv.DictReader(infile)
+		for row in reader:
+			id = row[key]
+			if id in sites:
+				a = (float(row['lat']), float(row['lon']))
+				b = (float(sites[id]['lat']), float(sites[id]['lon']))
+				if great_circle(a, b).meters < 1500:
+					continue
 
-		if id in tmotowers:
-			b = (float(tmotowers[id]['lat']), float(tmotowers[id]['lon']))
-			if great_circle((flat, flon), b).meters < 1500:
-				continue
-
-		n = { 'lat': tower['latitude'], 'lon': tower['longitude'], 'tmotowers': id, '_name': tower['photo_name'] }
-		nodes.append(n)
+			nodes.append(dict(row))
 
 with open('micro.csv') as infile:
 	reader = csv.DictReader(infile)
