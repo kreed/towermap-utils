@@ -34,7 +34,7 @@ for line in file:
 		elif sector >= 21 and sector <= 24:
 			band = '12'
 
-		if band == -1 and samples == '1':
+		if band == '-1' and samples == '1':
 			continue
 
 		created = time.strftime('%Y-%m-%d', time.gmtime(int(created)))
