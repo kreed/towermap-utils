@@ -86,7 +86,7 @@ for enb,v in cells.items():
 				way_props['_error_tac'] = site_props['error_tac'] = flag
 				site_props['_to_map'] = '2'
 
-			if not mls_cell['band'] in mapped_cell['band'].split(';'):
+			if not mls_cell['band'] in mapped_cell['band'].split(';') and mls_cell['band'] != '-1':
 				way_props['_error_band'] = site_props['error_band'] = 'missing band'
 				site_props['_to_map'] = '2'
 
@@ -101,16 +101,17 @@ for enb,v in cells.items():
 	if len(tacs) > 1:
 		site_props['_all_tacs'] = str(tacs)
 
-	bands = ';'.join(str(b) for b in sorted(bands))
+	mls_bands = ';'.join(str(b) for b in sorted(bands))
 	if mapped_cell:
-		if bands != mapped_cell['band']:
-			site_props['_mls_bands'] = bands
+		known_bands = ';'.join(str(b) for b in sorted(bands - {-1}))
+		if known_bands != mapped_cell['band']:
+			site_props['_mls_bands'] = mls_bands
 			if not 'error_band' in site_props and mls_cells:
 				site_props['_error_band'] = 'extraneous band'
 				site_props['_to_map'] = '2'
 	else:
 		site_props['tac'] = tacs[0][0]
-		site_props['band'] = bands
+		site_props['band'] = mls_bands
 
 	nodes.append(site_props)
 
