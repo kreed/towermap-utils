@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from xml.sax.saxutils import escape
 from geopy.distance import great_circle
 from lxml import etree
 from operator import itemgetter
@@ -82,7 +83,7 @@ for mapped_cell, mls_cells in sites:
 			if counter == len(mls_cells):
 				tac_flag = 'all bad tac'
 			elif counter > len(mls_cells)/2:
-				tac_flag = '&gt; half bad tac'
+				tac_flag = '> half bad tac'
 
 		bands = set()
 		sectors = set()
@@ -109,7 +110,7 @@ for mapped_cell, mls_cells in sites:
 
 			if mapped_cell:
 				if mls_cell['tac'] != mapped_cell['tac']:
-					flag = tac_flag if tac_flag else '&lt; half bad tac'
+					flag = tac_flag if tac_flag else '< half bad tac'
 					way_props['_error_tac'] = site_props['error_tac'] = flag
 					site_props['_to_map'] = '2'
 
@@ -189,7 +190,7 @@ with open(filename, 'w') as f:
 		f.write('<node id="%d" lat="%s" lon="%s">' % (props['_id'], props['lat'], props['lon']))
 		for k,v in props.items():
 			if v and k != 'lat' and k != 'lon' and k != '_id':
-				f.write('<tag k="%s" v="%s"/>' % (k, v))
+				f.write('<tag k="%s" v="%s"/>' % (k, escape(v)))
 		f.write('</node>')
 
 	way_id = -1
@@ -204,7 +205,7 @@ with open(filename, 'w') as f:
 
 		for k,v in props.items():
 			if v:
-				f.write('<tag k="%s" v="%s"/>' % (k, v))
+				f.write('<tag k="%s" v="%s"/>' % (k, escape(v)))
 
 		f.write('</way>')
 
