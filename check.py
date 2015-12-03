@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from geopy.distance import great_circle
 from lxml import etree
 from operator import itemgetter
 import csv
@@ -9,6 +10,7 @@ mls_filename = 'sa.csv'
 filename = 'check.osm'
 
 cells = {}
+microwave_sites = {}
 
 osm = etree.ElementTree(file=mapped_filename)
 for n in osm.iterfind('node'):
@@ -51,6 +53,9 @@ for enb,v in cells.items():
 	tac_flag = None
 
 	if mapped_cell:
+		site_props = dict(mapped_cell)
+		site_props['_to_map'] = '0'
+
 		counter = 0
 		for mls_cell in mls_cells:
 			if mls_cell['tac'] != mapped_cell['tac']:
@@ -60,8 +65,11 @@ for enb,v in cells.items():
 		elif counter > len(mls_cells)/2:
 			tac_flag = '&gt; half bad tac'
 
-		site_props = dict(mapped_cell)
-		site_props['_to_map'] = '0'
+		if mapped_cell.get('microwave_uls', None):
+			for uls in mapped_cell['microwave_uls'].split(';'):
+				if not uls in microwave_sites:
+					microwave_sites[uls] = []
+				microwave_sites[uls].append(site_props)
 	else:
 		site_props = {
 			'enb': enb,
@@ -127,6 +135,42 @@ for enb,v in cells.items():
 		site_props['band'] = mls_bands
 
 	nodes.append(site_props)
+
+with open('micro.csv') as infile:
+	reader = csv.DictReader(infile)
+	for row in reader:
+		uls_no = row['microwave_uls']
+		it = iter(row['coords'].split('|'))
+		coords = list(zip(it,it))
+
+		if uls_no in microwave_sites:
+			mw_nodes = []
+			for lon, lat in coords:
+				match = None
+				for site in microwave_sites[uls_no]:
+					a = (float(lat), float(lon))
+					b = (float(site['lat']), float(site['lon']))
+					if great_circle(a, b).meters < 1500:
+						match = site
+						break
+				mw_nodes.append(match)
+		else:
+			mw_nodes = [None] * len(coords)
+
+		matched = True
+
+		for i in range(len(coords)):
+			if not mw_nodes[i]:
+				matched = False
+				lon, lat = coords[i]
+				n = { 'lat': lat, 'lon': lon }
+				mw_nodes[i] = n
+				nodes.append(n)
+
+		for receiver in mw_nodes[1:]:
+			props = { k: v for k, v in row.items() if k != 'coords' }
+			props['_to_map'] = '0' if matched else '1'
+			ways.append((mw_nodes[0], receiver, props))
 
 with open(filename, 'w') as f:
 	f.write('<osm generator="check.py" upload="false" version="0.6">')
