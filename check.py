@@ -5,7 +5,9 @@ from geopy.distance import great_circle
 from lxml import etree
 from operator import itemgetter
 import csv
+import json
 
+bbox = [-101.2555,25.6811,-89.2694,31.8122]
 mapped_filename = '/home/chris/Dropbox/osm/tmo.osm'
 mls_filename = 'sa.csv'
 filename = 'check.osm'
@@ -13,6 +15,7 @@ filename = 'check.osm'
 sites = []
 cells = {}
 microwave_sites = {}
+tmotowers = {}
 
 osm = etree.ElementTree(file=mapped_filename)
 for n in osm.iterfind('node'):
@@ -66,6 +69,9 @@ for mapped_cell, mls_cells in sites:
 				if not uls in microwave_sites:
 					microwave_sites[uls] = []
 				microwave_sites[uls].append(site_props)
+
+		if mapped_cell.get('tmotowers', None):
+			tmotowers[mapped_cell['tmotowers']] = site_props
 	else:
 		site_props = {
 			'enb': mls_cells[0]['enb'],
@@ -142,6 +148,22 @@ for mapped_cell, mls_cells in sites:
 			site_props['band'] = mls_bands
 
 	nodes.append(site_props)
+
+with open('tmotowers.json') as f:
+	for tower in json.load(f):
+		id = tower['photo_id']
+		flat = float(tower['latitude'])
+		flon = float(tower['longitude'])
+		if flon < bbox[0] or flon > bbox[2] or flat < bbox[1] or flat > bbox[3]:
+			continue
+
+		if id in tmotowers:
+			b = (float(tmotowers[id]['lat']), float(tmotowers[id]['lon']))
+			if great_circle((flat, flon), b).meters < 1500:
+				continue
+
+		n = { 'lat': tower['latitude'], 'lon': tower['longitude'], 'tmotowers': id, '_name': tower['photo_name'] }
+		nodes.append(n)
 
 with open('micro.csv') as infile:
 	reader = csv.DictReader(infile)
