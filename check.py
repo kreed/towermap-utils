@@ -1,20 +1,33 @@
 #!/usr/bin/env python3
 
-import csv
-import sys
+from lxml import etree
 from operator import itemgetter
+import csv
 
+mapped_filename = '/home/chris/Dropbox/osm/tmo.osm'
+mls_filename = 'sa.csv'
 filename = 'check.osm'
 
 cells = {}
-with open('tmo.csv') as infile:
-	reader = csv.DictReader(infile)
-	for row in reader:
-		for enb in row['enb'].split(';'):
-			if enb:
-				cells[enb] = (row,[])
 
-with open(sys.argv[1]) as infile:
+osm = etree.ElementTree(file=mapped_filename)
+for n in osm.iterfind('node'):
+	lat = n.get('lat')
+	lon = n.get('lon')
+
+	props = {}
+	for t in n.iterfind('tag'):
+		v = t.get('v')
+		if v:
+			props[t.get('k')] = v
+
+	row = dict({'lat': lat, 'lon': lon}, **props)
+
+	if 'enb' in row:
+		for enb in row['enb'].split(';'):
+			cells[enb] = (row,[])
+
+with open(mls_filename) as infile:
 	reader = csv.DictReader(infile)
 	for row in reader:
 		enb = row['enb']
