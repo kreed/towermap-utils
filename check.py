@@ -103,9 +103,11 @@ for enb,v in cells.items():
 
 	bands = ';'.join(str(b) for b in sorted(bands))
 	if mapped_cell:
-		if bands != mapped_cell['band'] and not 'error_band' in site_props:
-			site_props['_error_band'] = 'extraneous band'
-			site_props['_to_map'] = '2'
+		if bands != mapped_cell['band']:
+			site_props['_mls_bands'] = bands
+			if not 'error_band' in site_props and mls_cells:
+				site_props['_error_band'] = 'extraneous band'
+				site_props['_to_map'] = '2'
 	else:
 		site_props['tac'] = tacs[0][0]
 		site_props['band'] = bands
