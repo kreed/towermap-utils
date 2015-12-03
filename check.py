@@ -35,7 +35,6 @@ ways = []
 for enb,v in cells.items():
 	mapped_cell, mls_cells = v
 
-	base_props = { 'enb': enb }
 	tac_flag = None
 
 	if mapped_cell:
@@ -48,15 +47,15 @@ for enb,v in cells.items():
 		elif counter > len(mls_cells)/2:
 			tac_flag = '&gt; half bad tac'
 
-		base_props['_to_map'] = '0'
-		site_props = dict(mapped_cell, **base_props)
+		site_props = dict(mapped_cell)
+		site_props['_to_map'] = '0'
 	else:
-		base_props['_to_map'] = '1'
 		site_props = {
+			'enb': enb,
+			'_to_map': '1',
 			'lon': str(sum([ float(row['lon']) for row in mls_cells ])/len(mls_cells)),
 			'lat': str(sum([ float(row['lat']) for row in mls_cells ])/len(mls_cells)),
 		}
-		site_props.update(base_props)
 
 	bands = set()
 	sectors = set()
@@ -65,8 +64,8 @@ for enb,v in cells.items():
 	last_seen = None
 
 	for mls_cell in mls_cells:
-		sector_props = dict(mls_cell, **base_props)
-		way_props = dict(base_props)
+		sector_props = dict(mls_cell)
+		way_props = { 'enb': enb }
 
 		bands.add(int(mls_cell['band']))
 		sectors.add(int(mls_cell['sector']))
@@ -85,9 +84,11 @@ for enb,v in cells.items():
 			if mls_cell['tac'] != mapped_cell['tac']:
 				flag = tac_flag if tac_flag else '&lt; half bad tac'
 				way_props['_error_tac'] = site_props['error_tac'] = flag
+				site_props['_to_map'] = '2'
 
 			if not mls_cell['band'] in mapped_cell['band'].split(';'):
 				way_props['_error_band'] = site_props['error_band'] = 'missing band'
+				site_props['_to_map'] = '2'
 
 		nodes.append(sector_props)
 		ways.append((site_props, sector_props, way_props))
@@ -104,6 +105,7 @@ for enb,v in cells.items():
 	if mapped_cell:
 		if bands != mapped_cell['band'] and not 'error_band' in site_props:
 			site_props['_error_band'] = 'extraneous band'
+			site_props['_to_map'] = '2'
 	else:
 		site_props['tac'] = tacs[0][0]
 		site_props['band'] = bands
