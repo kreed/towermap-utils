@@ -34,9 +34,10 @@ for line in file:
 		elif sector >= 21 and sector <= 24:
 			band = '12'
 
-		if band == '-1' and samples == '1':
-			continue
-
 		created = time.strftime('%Y-%m-%d', time.gmtime(int(created)))
 		updated = time.strftime('%Y-%m-%d', time.gmtime(int(updated)))
+
+		if band == '-1' and updated == created:
+			continue
+
 		print(lon,lat,enb,cell,sector,range,tac,pci,samples,created,updated,band,sep=',')
