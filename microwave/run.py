@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
-import csv
 import os
 import sqlite3
-from geopy.distance import great_circle
-from pprint import pprint
 
 filename = 'micro.csv'
 bbox = [-101.3901,27.4839,-91.6095,30.6285]
