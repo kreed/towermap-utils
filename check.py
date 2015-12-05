@@ -95,9 +95,11 @@ for mapped_cell, mls_cells in sites:
 
 		bands = set()
 		sectors = set()
+		samples = 0
 		tacs = {}
 		first_seen = None
 		last_seen = None
+		band12_first_seen = None
 
 		for mls_cell in mls_cells:
 			sector_props = dict(mls_cell)
@@ -105,6 +107,7 @@ for mapped_cell, mls_cells in sites:
 
 			bands.add(int(mls_cell['band']))
 			sectors.add(int(mls_cell['sector']))
+			samples += int(mls_cell['samples'])
 
 			tac = mls_cell['tac']
 			if not tac in tacs:
@@ -113,6 +116,8 @@ for mapped_cell, mls_cells in sites:
 
 			if first_seen == None or mls_cell['created'] < first_seen:
 				first_seen = mls_cell['created']
+			if mls_cell['band'] == '12' and (band12_first_seen == None or mls_cell['created'] < band12_first_seen):
+				band12_first_seen = mls_cell['created']
 			if last_seen == None or mls_cell['updated'] > last_seen:
 				last_seen = mls_cell['updated']
 
@@ -130,12 +135,15 @@ for mapped_cell, mls_cells in sites:
 			ways.append((site_props, sector_props, way_props))
 
 		site_props['_sectors'] = ';'.join(str(b) for b in sorted(sectors))
+		site_props['_samples'] = str(samples)
 		site_props['_first_seen'] = first_seen
 		site_props['_last_seen'] = last_seen
+		if 12 in bands:
+			site_props['_band12_first_seen'] = band12_first_seen
 
 		tacs = sorted(tacs.items(), key=itemgetter(1), reverse=True)
 		if len(tacs) > 1:
-			site_props['_all_tacs'] = str(tacs)
+			site_props['_tacs_list'] = str(tacs)
 
 		mls_bands = ';'.join(str(b) for b in sorted(bands))
 		if mapped_cell:
