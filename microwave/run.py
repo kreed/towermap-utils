@@ -4,7 +4,7 @@ import os
 import sqlite3
 
 filename = 'micro.csv'
-bbox = [-101.3901,27.4839,-91.6095,30.6285]
+bbox = [-101.2555,25.6811,-89.2694,31.8122]
 
 con = sqlite3.connect(os.path.dirname(os.path.realpath(__file__)) + "/l_micro.sqlite")
 cur = con.cursor()
