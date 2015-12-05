@@ -13,7 +13,7 @@ cur = con.cursor()
 q = ("SELECT unique_system_identifier, EN.registration_number, structure_type, date_constructed, date_dismantled, "
 	"latitude_total_seconds*(CASE WHEN latitude_direction='S' THEN -1 ELSE 1 END) AS lat, longitude_total_seconds*(CASE WHEN longitude_direction='W' THEN -1 ELSE 1 END) AS lon "
 	"FROM EN JOIN CO USING (unique_system_identifier) JOIN RA USING (unique_system_identifier) "
-	"WHERE entity_name LIKE 'T-Mobile%' AND lon>? AND lat>? AND lon<? AND lat<? GROUP BY unique_system_identifier")
+	"WHERE entity_name LIKE 'T-Mobile%' AND status_code!='A' AND lon>? AND lat>? AND lon<? AND lat<? GROUP BY unique_system_identifier")
 q = cur.execute(q, bbox_arcsecs)
 with open(filename, 'w') as f:
 	print('asr,_website,_structure_type,_date_constructed,_date_dismantled,lat,lon', file=f)
