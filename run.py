@@ -23,7 +23,7 @@ for line in file:
 
 		sector = int(cell) & 0xff
 		enb = int(cell) >> 8
-		if enb > 200000:
+		if enb > 150000:
 			continue
 
 		band = '-1'
