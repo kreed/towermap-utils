@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import csv
 import os
 import sqlite3
 import sys
@@ -38,7 +39,8 @@ for row in q.fetchall():
 		print('unknown class code', class_code)
 
 with open(filename, 'w') as f:
-	print('microwave_uls,owner,website,grant_date,cancellation_date,coords', file=f)
+	w = csv.writer(f)
+	w.writerow(('microwave_uls','owner','website','grant_date','cancellation_date','coords'))
 	for uls_no, v in license_locs.items():
 		transmitters, receivers, owner, grant_date, cancel_date = v
 		if len(transmitters) != 1 or len(receivers) < 1:
@@ -47,7 +49,7 @@ with open(filename, 'w') as f:
 
 		coords = '|'.join('%f|%f' % (x,y) for x,y in itertools.chain(transmitters, receivers))
 		url = 'http://wireless2.fcc.gov/UlsApp/UlsSearch/license.jsp?licKey=%d' % uls_no
-		print(uls_no, owner, url, grant_date, cancel_date, coords, sep=',', file=f)
+		w.writerow((uls_no, owner, url, grant_date, cancel_date, coords))
 
 con.commit()
 con.close()
