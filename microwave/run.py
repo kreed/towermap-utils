@@ -10,8 +10,11 @@ filename = 'micro.csv'
 bbox = [-101.2555,25.6811,-89.2694,31.8122]
 
 entity = None
-if len(sys.argv) > 1 and sys.argv[1] == 'tmo':
-	entity = '%@t-mobile.com'
+if len(sys.argv) > 1:
+	if sys.argv[1] == 'tmo':
+		entity = '%@t-mobile.com'
+	elif sys.argv[1] == 'att':
+		entity = '%@att.com'
 
 con = sqlite3.connect(os.path.dirname(os.path.realpath(__file__)) + "/l_micro.sqlite")
 cur = con.cursor()
