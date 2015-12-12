@@ -170,7 +170,9 @@ for f, key, sites in imports:
 				if great_circle(a, b).meters < 1500:
 					continue
 
-			nodes.append(dict(row))
+			props = dict(row)
+			props['_to_map'] = '1'
+			nodes.append(props)
 
 with open('micro.csv') as infile:
 	reader = csv.DictReader(infile)
