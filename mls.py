@@ -1,20 +1,20 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from __future__ import print_function
-
-import gzip
+import glob
 import sys
+import subprocess
 import time
 
-file = gzip.GzipFile(sys.argv[1], 'r')
+filename = sorted(glob.glob('MLS-full-cell-export-*.gz'))[-1]
+
 bbox = None
-if len(sys.argv) == 3 and 'bbox' in sys.argv[2]:
+if len(sys.argv) == 2 and 'bbox' in sys.argv[1]:
 	bbox = [-101.2555,25.6811,-89.2694,31.8122]
 
 print('lon,lat,enb,gci,sector,range,tac,pci,samples,created,updated,band')
-for line in file:
-	if line[0:12] == 'LTE,310,260,':
-		radio, mcc, net, tac, cell, pci, lon, lat, range, samples, changeable, created, updated, averageSignal = line.split(',')
+with subprocess.Popen(['zgrep', '^LTE,310,260', filename], stdout=subprocess.PIPE) as grep:
+	for line in grep.stdout:
+		radio, mcc, net, tac, cell, pci, lon, lat, range, samples, changeable, created, updated, averageSignal = str(line).split(',')
 
 		flat = float(lat)
 		flon = float(lon)
