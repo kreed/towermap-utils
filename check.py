@@ -128,7 +128,7 @@ for mapped_cell, mls_cells in sites:
 					site_props['_to_map'] = '2'
 
 				if not mls_cell['band'] in mapped_cell['band'].split(';') and mls_cell['band'] != '-1':
-					way_props['_error_band'] = site_props['error_band'] = 'missing band'
+					way_props['_error_band'] = site_props['_error_band'] = 'missing band'
 					site_props['_to_map'] = '2'
 
 			nodes.append(sector_props)
@@ -150,7 +150,7 @@ for mapped_cell, mls_cells in sites:
 			known_bands = ';'.join(str(b) for b in sorted(bands - {-1}))
 			if known_bands != mapped_cell['band']:
 				site_props['_mls_bands'] = mls_bands
-				if not 'error_band' in site_props and mls_cells:
+				if not '_error_band' in site_props and mls_cells:
 					site_props['_error_band'] = 'extraneous band'
 					site_props['_to_map'] = '2'
 		else:
