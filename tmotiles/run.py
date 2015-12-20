@@ -19,7 +19,7 @@ cmd = sys.argv[1]
 tile_path = '/{zoom}/{x}/{y}.png'
 tile_size = 256
 max_zoom = 13
-min_zoom = 5
+min_zoom = 0
 worker_count = 4
 
 if cmd == 'fetch':
