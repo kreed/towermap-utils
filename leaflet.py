@@ -26,6 +26,10 @@ for n in osm.iterfind('node'):
 			color = color | 0xff0000
 	props['marker-color'] = color and '#%06x' % color or ''
 
+	structure = props['structure']
+	icon_struct = structure if structure in ('lattice', 'guyed', 'monopole', 'building', 'water_tower') else 'default'
+	props['icon'] = icon_struct + '_' + props.get('band', 'unknown').replace(';', '_')
+
 	point = geojson.Point((float(lon), float(lat)))
 	f = geojson.Feature(geometry=point, properties=props)
 	features.append(f)
