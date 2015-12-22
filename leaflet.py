@@ -15,21 +15,6 @@ for n in osm.iterfind('node'):
 	for t in n.iterfind('tag'):
 		props[t.get('k')] = t.get('v')
 
-	color = 0
-	if 'band' in props:
-		bands = props['band'].split(';')
-		if '2' in bands:
-			color = color | 0x0000ff
-		if '4' in bands:
-			color = color | 0x00ff00
-		if '12' in bands:
-			color = color | 0xff0000
-	props['marker-color'] = color and '#%06x' % color or ''
-
-	structure = props['structure']
-	icon_struct = structure if structure in ('lattice', 'guyed', 'monopole', 'building', 'water_tower') else 'default'
-	props['icon'] = icon_struct + '_' + props.get('band', 'unknown').replace(';', '_')
-
 	point = geojson.Point((float(lon), float(lat)))
 	f = geojson.Feature(geometry=point, properties=props)
 	features.append(f)
