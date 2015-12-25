@@ -12,6 +12,7 @@ filename = 'check.osm'
 imports = [
 	('imports/tmotowers.csv', 'tmotowers', {}),
 	('imports/ausperms.csv', 'austin:addr', {}),
+	('imports/houperms.csv', 'houston:addr', {}),
 	('imports/asrtowers.csv', 'asr', {}),
 ]
 
