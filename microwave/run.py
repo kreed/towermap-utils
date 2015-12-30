@@ -21,7 +21,7 @@ cur = con.cursor()
 
 license_locs = {}
 
-q = ("SELECT unique_system_identifier, entity_name, grant_date, cancellation_date, location_class_code, "
+q = ("SELECT unique_system_identifier, HD.call_sign, entity_name, grant_date, cancellation_date, location_class_code, "
 	"(lat_degrees+lat_minutes/60.0+lat_seconds/3600.0)*(CASE WHEN lat_direction='S' THEN -1 ELSE 1 END) AS lat, "
 	"(long_degrees+long_minutes/60.0+long_seconds/3600.0)*(CASE WHEN long_direction='W' THEN -1 ELSE 1 END) AS lon "
 	"FROM EN JOIN HD USING (unique_system_identifier) JOIN LO USING (unique_system_identifier) "
@@ -29,10 +29,10 @@ q = ("SELECT unique_system_identifier, entity_name, grant_date, cancellation_dat
 	"lon>? AND lat>? AND lon<? AND lat<?")
 q = cur.execute(q, bbox)
 for row in q.fetchall():
-	uls_no, owner, grant_date, cancel_date, class_code, lat, lon = row
+	uls_no, call_sign, owner, grant_date, cancel_date, class_code, lat, lon = row
 
 	if not uls_no in license_locs:
-		license_locs[uls_no] = set(),set(),owner,grant_date,cancel_date
+		license_locs[uls_no] = set(),set(),call_sign,owner,grant_date,cancel_date
 
 	if class_code == 'T':
 		license_locs[uls_no][0].add((lon,lat))
@@ -43,16 +43,16 @@ for row in q.fetchall():
 
 with open(filename, 'w') as f:
 	w = csv.writer(f)
-	w.writerow(('microwave_uls','owner','website','grant_date','cancellation_date','coords'))
+	w.writerow(('microwave', 'call_sign','owner','website','grant_date','cancellation_date','coords'))
 	for uls_no, v in license_locs.items():
-		transmitters, receivers, owner, grant_date, cancel_date = v
+		transmitters, receivers, call_sign, owner, grant_date, cancel_date = v
 		if len(transmitters) != 1 or len(receivers) < 1:
 			print(uls_no, len(transmitters), 'transmitters', len(receivers), 'receivers')
 			continue
 
 		coords = '|'.join('%f|%f' % (x,y) for x,y in itertools.chain(transmitters, receivers))
 		url = 'http://wireless2.fcc.gov/UlsApp/UlsSearch/license.jsp?licKey=%d' % uls_no
-		w.writerow((uls_no, owner, url, grant_date, cancel_date, coords))
+		w.writerow(('yes', call_sign, owner, url, grant_date, cancel_date, coords))
 
 con.commit()
 con.close()
