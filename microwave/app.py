@@ -28,7 +28,7 @@ q = ("SELECT unique_system_identifier, HD.call_sign, entity_name, date_entered, 
 	"(long_degrees+long_minutes/60.0+long_seconds/3600.0)*(CASE WHEN long_direction='W' THEN -1 ELSE 1 END) AS lon "
 	"FROM EN JOIN HD USING (unique_system_identifier) JOIN AD USING (unique_system_identifier) JOIN LO USING (unique_system_identifier) "
 	+ ("WHERE email LIKE '{}' AND ".format(entity) if entity else "WHERE ") +
-	"lon>? AND lat>? AND lon<? AND lat<?")
+	"lon>? AND lat>? AND lon<? AND lat<? AND Application_Status NOT IN ('D', 'W')")
 q = cur.execute(q, bbox)
 for row in q.fetchall():
 	uls_no, call_sign, owner, grant_date, cancel_date, class_code, lat, lon = row
