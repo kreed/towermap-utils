@@ -5,6 +5,8 @@ from geopy.distance import great_circle
 from lxml import etree
 from operator import itemgetter
 import csv
+import geojson
+import sys
 
 mapped_filename = '/home/chris/Dropbox/osm/tmo.osm'
 mls_filename = 'sa.csv'
@@ -210,6 +212,22 @@ with open('micro.csv') as infile:
 			props = { k: v for k, v in row.items() if k != 'coords' }
 			props['_to_map'] = '0' if matched else '1'
 			ways.append((mw_nodes[0], receiver, props))
+
+if len(sys.argv) > 1 and sys.argv[1] == 'geojson':
+	with open('check.geojson', 'w') as f:
+		features = []
+		for n in nodes:
+			geom = geojson.Point((float(n['lon']), float(n['lat'])))
+			props = { k: v for k,v in n.items() if k not in ('lat','lon') }
+			features.append(geojson.Feature(geometry=geom, properties=props))
+		for w in ways:
+			n1, n2, tags = w
+			geom = geojson.LineString(((float(n1['lon']), float(n1['lat'])), (float(n2['lon']), float(n2['lat']))))
+			props = { k: v for k,v in tags.items() if k not in ('lat','lon') }
+			features.append(geojson.Feature(geometry=geom, properties=props))
+		features = geojson.FeatureCollection(features)
+		f.write('var towers=')
+		geojson.dump(features, f)
 
 with open(filename, 'w') as f:
 	f.write('<osm generator="check.py" upload="false" version="0.6">')
