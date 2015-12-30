@@ -3,9 +3,12 @@
 import csv
 import os
 import sqlite3
+import sys
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from bbox import bbox
 
 filename = 'asrtowers.csv'
-bbox = [-101.2555,25.6811,-89.2694,31.8122]
 bbox_arcsecs = [ 3600 * d for d in bbox ]
 
 con = sqlite3.connect(os.path.dirname(os.path.realpath(__file__)) + "/r_tower.sqlite")

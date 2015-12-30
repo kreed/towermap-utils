@@ -6,8 +6,10 @@ import sqlite3
 import sys
 import itertools
 
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from bbox import bbox
+
 filename = 'micro.csv'
-bbox = [-101.2555,25.6811,-89.2694,31.8122]
 
 entity = None
 if len(sys.argv) > 1:
