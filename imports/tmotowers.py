@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import json
+import sys
+import os
 
-bbox = [-101.2555,25.6811,-89.2694,31.8122]
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from bbox import bbox
 
 print('lat,lon,tmotowers,_name')
 with open('tmotowers.json') as infile:
