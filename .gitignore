@@ -1,0 +1,8 @@
+check.geojson
+check.osm
+micro.csv
+sa.csv
+MLS-*.csv.gz
+/web/icons/towers.png
+/web/icons/towers.json
+__pycache__/
