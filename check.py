@@ -64,11 +64,11 @@ for mapped_cell, mls_cells in sites:
 		site_props = dict(mapped_cell)
 		site_props['_to_map'] = '0'
 
-		if mapped_cell.get('microwave_uls', None):
-			for uls in mapped_cell['microwave_uls'].split(';'):
-				if not uls in microwave_sites:
-					microwave_sites[uls] = []
-				microwave_sites[uls].append(site_props)
+		if mapped_cell.get('microwave', None):
+			for call_sign in mapped_cell['microwave'].split(';'):
+				if not call_sign in microwave_sites:
+					microwave_sites[call_sign] = []
+				microwave_sites[call_sign].append(site_props)
 
 		for f, key, sites in imports:
 			if mapped_cell.get(key, None):
@@ -178,15 +178,15 @@ for f, key, sites in imports:
 with open('micro.csv') as infile:
 	reader = csv.DictReader(infile)
 	for row in reader:
-		uls_no = row['microwave_uls']
+		call_sign = row['call_sign']
 		it = iter(row['coords'].split('|'))
 		coords = list(zip(it,it))
 
-		if uls_no in microwave_sites:
+		if call_sign in microwave_sites:
 			mw_nodes = []
 			for lon, lat in coords:
 				match = None
-				for site in microwave_sites[uls_no]:
+				for site in microwave_sites[call_sign]:
 					a = (float(lat), float(lon))
 					b = (float(site['lat']), float(site['lon']))
 					if great_circle(a, b).meters < 1500:
