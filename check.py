@@ -188,12 +188,14 @@ with open('micro.csv') as infile:
 			mw_nodes = []
 			for lon, lat in coords:
 				match = None
+				match_dist = 1500
 				for site in microwave_sites[call_sign]:
 					a = (float(lat), float(lon))
 					b = (float(site['lat']), float(site['lon']))
-					if great_circle(a, b).meters < 1500:
+					distance = great_circle(a, b).meters
+					if distance < match_dist:
 						match = site
-						break
+						match_dist = distance
 				mw_nodes.append(match)
 		else:
 			mw_nodes = [None] * len(coords)
