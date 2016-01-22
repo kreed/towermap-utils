@@ -74,6 +74,10 @@ def remove_roaming(x, y, zoom):
 	data[(data == (212,212,212,255)).all(axis = -1)] = (0,0,0,0) # normal roaming
 	data[(data == (188,190,192,255)).all(axis = -1)] = (0,0,0,0) # stripes for non-prepaid roaming
 
+	# change 2G to solid color
+	data[(data == (255,103,189,255)).all(axis = -1)] = (122,36,80,255)
+	data[(data == (255,164,210,255)).all(axis = -1)] = (122,36,80,255)
+
 	# if removing roaming resulted in a completely transparent image, return nothing
 	if not data.T[3].any():
 		return None
@@ -81,7 +85,7 @@ def remove_roaming(x, y, zoom):
 	return Image.fromarray(data)
 
 def stitch_image(x, y, zoom):
-	new_im = Image.new('RGBA', (tile_size,tile_size), (255,255,255,0))
+	new_im = Image.new('RGBA', (tile_size,tile_size), (0,0,0,0))
 
 	images = 4
 	for dx in range(2):
